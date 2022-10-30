@@ -58,6 +58,8 @@ export const projectPreviewMounted = createAction(
   actionTypes.projectPreviewMounted
 );
 
+export const setPreviewType = createAction(actionTypes.setPreviewType);
+
 export const storePortalDocument = createAction(
   actionTypes.storePortalDocument
 );

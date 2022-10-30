@@ -1,6 +1,8 @@
 import { first } from 'lodash-es';
 import React, { useState, ReactElement } from 'react';
+import { connect } from 'react-redux';
 import { ReflexContainer, ReflexSplitter, ReflexElement } from 'react-reflex';
+import { createSelector } from 'reselect';
 import { sortChallengeFiles } from '../../../../../utils/sort-challengefiles';
 import { challengeTypes } from '../../../../utils/challenge-types';
 import {
@@ -9,6 +11,8 @@ import {
   ResizeProps
 } from '../../../redux/prop-types';
 import PreviewPortal from '../components/preview-portal';
+import { setPreviewType } from '../redux/actions';
+import { showPreviewPane, showPreviewPortal } from '../redux/selectors';
 import ActionRow from './action-row';
 
 type Pane = { flex: number };
@@ -34,7 +38,24 @@ interface DesktopLayoutProps {
   resizeProps: ResizeProps;
   testOutput: ReactElement;
   windowTitle: string;
+  showPreviewPane: boolean;
+  showPreviewPortal: boolean;
+  setPreviewType: (type: 'none' | 'pane' | 'portal') => void;
 }
+
+const mapDispatchToProps = {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  setPreviewType
+};
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const mapStateToProps = createSelector(
+  showPreviewPane,
+  showPreviewPortal,
+  (showPreviewPane: boolean, showPreviewPortal: boolean) => ({
+    showPreviewPane,
+    showPreviewPortal
+  })
+);
 
 const reflexProps = {
   propagateDimensions: true
@@ -42,20 +63,16 @@ const reflexProps = {
 
 const DesktopLayout = (props: DesktopLayoutProps): JSX.Element => {
   const [showNotes, setShowNotes] = useState(false);
-  const [showPreviewPane, setShowPreviewPane] = useState(true);
-  const [showPreviewPortal, setShowPreviewPortal] = useState(false);
   const [showConsole, setShowConsole] = useState(false);
   const [showInstructions, setShowInstuctions] = useState(true);
 
   const togglePane = (pane: string): void => {
     switch (pane) {
       case 'showPreviewPane':
-        if (!showPreviewPane && showPreviewPortal) setShowPreviewPortal(false);
-        setShowPreviewPane(!showPreviewPane);
+        setPreviewType(showPreviewPane ? 'none' : 'pane');
         break;
       case 'showPreviewPortal':
-        if (!showPreviewPortal && showPreviewPane) setShowPreviewPane(false);
-        setShowPreviewPortal(!showPreviewPortal);
+        setPreviewType(showPreviewPortal ? 'none' : 'portal');
         break;
       case 'showConsole':
         setShowConsole(!showConsole);
@@ -69,8 +86,6 @@ const DesktopLayout = (props: DesktopLayoutProps): JSX.Element => {
       default:
         setShowInstuctions(true);
         setShowConsole(false);
-        setShowPreviewPane(true);
-        setShowPreviewPortal(false);
         setShowNotes(false);
     }
   };
@@ -88,6 +103,9 @@ const DesktopLayout = (props: DesktopLayoutProps): JSX.Element => {
     testOutput,
     hasNotes,
     hasPreview,
+    showPreviewPane,
+    showPreviewPortal,
+    setPreviewType,
     layoutState,
     notes,
     preview,
@@ -192,4 +210,4 @@ const DesktopLayout = (props: DesktopLayoutProps): JSX.Element => {
 
 DesktopLayout.displayName = 'DesktopLayout';
 
-export default DesktopLayout;
+export default connect(mapStateToProps, mapDispatchToProps)(DesktopLayout);

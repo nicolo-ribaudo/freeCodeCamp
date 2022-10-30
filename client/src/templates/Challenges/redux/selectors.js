@@ -85,3 +85,6 @@ export const challengeDataSelector = state => {
 export const attemptsSelector = state => state[ns].attempts;
 export const canFocusEditorSelector = state => state[ns].canFocusEditor;
 export const visibleEditorsSelector = state => state[ns].visibleEditors;
+
+export const showPreviewPane = state => state[ns].previewType === 'pane';
+export const showPreviewPortal = state => state[ns].previewType === 'portal';

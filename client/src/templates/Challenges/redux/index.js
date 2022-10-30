@@ -178,6 +178,10 @@ export const reducer = handleActions(
       ...state,
       isBuildEnabled: false
     }),
+    [actionTypes.setPreviewType]: (state, { payload }) => ({
+      ...state,
+      previewType: payload
+    }),
     [actionTypes.storePortalDocument]: (state, { payload }) => ({
       ...state,
       portalDocument: payload
