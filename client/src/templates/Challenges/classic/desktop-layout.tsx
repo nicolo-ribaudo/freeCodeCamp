@@ -12,7 +12,11 @@ import {
 } from '../../../redux/prop-types';
 import PreviewPortal from '../components/preview-portal';
 import { setPreviewType } from '../redux/actions';
-import { showPreviewPane, showPreviewPortal } from '../redux/selectors';
+import {
+  showPreviewPane,
+  showPreviewPortal,
+  portalWindowSelector
+} from '../redux/selectors';
 import ActionRow from './action-row';
 
 type Pane = { flex: number };
@@ -38,6 +42,7 @@ interface DesktopLayoutProps {
   resizeProps: ResizeProps;
   testOutput: ReactElement;
   windowTitle: string;
+  portalWindow: Window | null;
   showPreviewPane: boolean;
   showPreviewPortal: boolean;
   setPreviewType: (type: 'none' | 'pane' | 'portal') => void;
@@ -51,9 +56,15 @@ const mapDispatchToProps = {
 const mapStateToProps = createSelector(
   showPreviewPane,
   showPreviewPortal,
-  (showPreviewPane: boolean, showPreviewPortal: boolean) => ({
+  portalWindowSelector,
+  (
+    showPreviewPane: boolean,
+    showPreviewPortal: boolean,
+    portalWindow: Window | null
+  ) => ({
     showPreviewPane,
-    showPreviewPortal
+    showPreviewPortal,
+    portalWindow
   })
 );
 
@@ -69,9 +80,11 @@ const DesktopLayout = (props: DesktopLayoutProps): JSX.Element => {
   const togglePane = (pane: string): void => {
     switch (pane) {
       case 'showPreviewPane':
+        if (showPreviewPortal) portalWindow?.close();
         setPreviewType(showPreviewPane ? 'none' : 'pane');
         break;
       case 'showPreviewPortal':
+        if (showPreviewPortal) portalWindow?.close();
         setPreviewType(showPreviewPortal ? 'none' : 'portal');
         break;
       case 'showConsole':
@@ -110,7 +123,8 @@ const DesktopLayout = (props: DesktopLayoutProps): JSX.Element => {
     notes,
     preview,
     hasEditableBoundaries,
-    windowTitle
+    windowTitle,
+    portalWindow
   } = props;
 
   const challengeFile = getChallengeFile();

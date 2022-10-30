@@ -60,12 +60,8 @@ export const projectPreviewMounted = createAction(
 
 export const setPreviewType = createAction(actionTypes.setPreviewType);
 
-export const storePortalDocument = createAction(
-  actionTypes.storePortalDocument
-);
-export const removePortalDocument = createAction(
-  actionTypes.removePortalDocument
-);
+export const storePortalWindow = createAction(actionTypes.storePortalWindow);
+export const removePortalWindow = createAction(actionTypes.removePortalWindow);
 
 export const challengeMounted = createAction(actionTypes.challengeMounted);
 export const checkChallenge = createAction(actionTypes.checkChallenge);

@@ -2,26 +2,34 @@ import { Component, ReactElement } from 'react';
 import ReactDOM from 'react-dom';
 import { TFunction, withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
-import { storePortalDocument, removePortalDocument } from '../redux/actions';
+import { createSelector } from 'reselect';
+import { storePortalWindow, removePortalWindow } from '../redux/actions';
+import { portalWindowSelector } from '../redux/selectors';
 
 interface PreviewPortalProps {
   children: ReactElement | null;
   togglePane: (pane: string) => void;
   windowTitle: string;
   t: TFunction;
-  storePortalDocument: (document: Document | undefined) => void;
-  removePortalDocument: () => void;
+  portalWindow: Window | null;
+  storePortalWindow: (window: Window | null) => void;
+  removePortalWindow: () => void;
 }
 
 const mapDispatchToProps = {
-  storePortalDocument,
-  removePortalDocument
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  storePortalWindow,
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  removePortalWindow
 };
+const mapStateToProps = createSelector(
+  portalWindowSelector,
+  (portalWindow: Window | null) => ({ portalWindow })
+);
 
 class PreviewPortal extends Component<PreviewPortalProps> {
   static displayName = 'PreviewPortal';
   mainWindow: Window;
-  externalWindow: Window | null = null;
   containerEl;
   titleEl;
   styleEl;
@@ -30,7 +38,6 @@ class PreviewPortal extends Component<PreviewPortalProps> {
     super(props);
 
     this.mainWindow = window;
-    this.externalWindow = null;
     this.containerEl = document.createElement('div');
     this.titleEl = document.createElement('title');
     this.styleEl = document.createElement('style');
@@ -38,6 +45,7 @@ class PreviewPortal extends Component<PreviewPortalProps> {
 
   componentDidMount() {
     const { t, windowTitle } = this.props;
+    let { portalWindow } = this.props;
 
     this.titleEl.innerText = `${t(
       'learn.editor-tabs.preview'
@@ -51,15 +59,21 @@ class PreviewPortal extends Component<PreviewPortalProps> {
       }
     `;
 
-    this.externalWindow = window.open(
-      '',
-      '',
-      'width=960,height=540,left=100,top=100'
-    );
+    if (portalWindow) {
+      (portalWindow.document.firstElementChild as HTMLHtmlElement).innerHTML =
+        '';
+    } else {
+      portalWindow = window.open(
+        '',
+        '',
+        'width=960,height=540,left=100,top=100'
+      );
+      this.props.storePortalWindow(portalWindow);
+    }
 
-    this.externalWindow?.document.head.appendChild(this.titleEl);
-    this.externalWindow?.document.head.appendChild(this.styleEl);
-    this.externalWindow?.document.body.setAttribute(
+    portalWindow?.document.head.appendChild(this.titleEl);
+    portalWindow?.document.head.appendChild(this.styleEl);
+    portalWindow?.document.body.setAttribute(
       'style',
       `
         margin: 0px;
@@ -67,22 +81,21 @@ class PreviewPortal extends Component<PreviewPortalProps> {
         overflow: hidden;
       `
     );
-    this.externalWindow?.document.body.appendChild(this.containerEl);
-    this.externalWindow?.addEventListener('beforeunload', () => {
+    portalWindow?.document.body.appendChild(this.containerEl);
+    portalWindow?.addEventListener('beforeunload', () => {
       this.props.togglePane('showPreviewPortal');
+      this.props.storePortalWindow(null);
     });
-
-    this.props.storePortalDocument(this.externalWindow?.document);
 
     this.mainWindow?.addEventListener('beforeunload', () => {
-      this.externalWindow?.close();
+      portalWindow?.close();
     });
   }
 
-  componentWillUnmount() {
+  /*componentWillUnmount() {
     this.externalWindow?.close();
     this.props.removePortalDocument();
-  }
+  }*/
 
   render() {
     return ReactDOM.createPortal(this.props.children, this.containerEl);
@@ -92,6 +105,6 @@ class PreviewPortal extends Component<PreviewPortalProps> {
 PreviewPortal.displayName = 'PreviewPortal';
 
 export default connect(
-  null,
+  mapStateToProps,
   mapDispatchToProps
 )(withTranslation()(PreviewPortal));
